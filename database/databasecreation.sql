@@ -1,0 +1,2 @@
+CREATE DATABASE library_management_system;
+USE library_management_system;
