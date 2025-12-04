@@ -13,12 +13,33 @@ if (
     !empty($data->book_id)
 ) {
     try {
-        // Check if book is available
-        $check_query = "SELECT available_copies FROM books WHERE book_id = :book_id";
+        // Check if user already has this book borrowed in last 15 days
+        $check_query = "SELECT transaction_id 
+                        FROM transactions 
+                        WHERE user_id = :user_id 
+                        AND book_id = :book_id 
+                        AND transaction_type = 'borrow'
+                        AND status IN ('pending', 'active')
+                        AND created_at > DATE_SUB(NOW(), INTERVAL 15 DAY)";
         $check_stmt = $db->prepare($check_query);
+        $check_stmt->bindParam(":user_id", $data->user_id);
         $check_stmt->bindParam(":book_id", $data->book_id);
         $check_stmt->execute();
-        $book = $check_stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($check_stmt->rowCount() > 0) {
+            http_response_code(400);
+            echo json_encode(array(
+                "message" => "You already have this book borrowed. You can borrow it again after returning it and waiting 15 days."
+            ));
+            exit();
+        }
+        
+        // Check if book is available
+        $book_query = "SELECT available_copies FROM books WHERE book_id = :book_id";
+        $book_stmt = $db->prepare($book_query);
+        $book_stmt->bindParam(":book_id", $data->book_id);
+        $book_stmt->execute();
+        $book = $book_stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($book['available_copies'] > 0) {
             // Get borrow duration from settings

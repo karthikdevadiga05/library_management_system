@@ -27,4 +27,33 @@ try {
     
     $expired_count = 0;
     
-    while ($row = $stmt->fetch(
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // Update transaction status
+        $update_query = "UPDATE transactions SET status = 'expired' WHERE transaction_id = :transaction_id";
+        $update_stmt = $db->prepare($update_query);
+        $update_stmt->bindParam(":transaction_id", $row['transaction_id']);
+        $update_stmt->execute();
+        
+        // Return book to available
+        $book_query = "UPDATE books SET available_copies = available_copies + 1 WHERE book_id = :book_id";
+        $book_stmt = $db->prepare($book_query);
+        $book_stmt->bindParam(":book_id", $row['book_id']);
+        $book_stmt->execute();
+        
+        $expired_count++;
+    }
+    
+    http_response_code(200);
+    echo json_encode(array("message" => "Checked expired transactions", "expired_count" => $expired_count));
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(array("message" => "Database error: " . $e->getMessage()));
+}
+?>
+
+
+
+
+
+
+
