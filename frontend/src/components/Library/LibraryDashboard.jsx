@@ -20,26 +20,42 @@ const LibraryDashboard = ({ user, onLogout }) => {
   }, []);
 
   const loadTransactions = async () => {
-    try {
-      const data = await transactionService.getTransactions(null, user.library_id);
-      setTransactions(data);
-      
-      const activeLoans = data.filter(t => t.transaction_type === 'borrow' && t.status === 'active').length;
-      const pendingRequests = data.filter(t => t.status === 'pending').length;
-      const revenue = data
-        .filter(t => t.transaction_type === 'purchase' && t.status === 'completed')
-        .reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
+  try {
+    const data = await transactionService.getTransactions(null, user.library_id);
+    setTransactions(data);
+    
+    const activeLoans = data.filter(t => t.transaction_type === 'borrow' && t.status === 'active').length;
+    const pendingRequests = data.filter(t => t.status === 'pending').length;
+    const revenue = data
+      .filter(t => t.transaction_type === 'purchase' && t.status === 'completed')
+      .reduce((sum, t) => sum + parseFloat(t.price || 0), 0);
 
+    // Get actual total books from library stats
+    try {
+      const statsResponse = await fetch(`http://localhost/library-management-system/backend/api/libraries/get_library_stats.php?library_id=${user.library_id}`);
+      const statsData = await statsResponse.json();
+      
+      setStats({
+        totalBooks: statsData.total_books || 0,
+        activeLoans,
+        pendingRequests,
+        revenue
+      });
+    } catch (error) {
+      console.error('Error loading stats:', error);
+      // Fallback to user data
       setStats({
         totalBooks: user.total_books || 0,
         activeLoans,
         pendingRequests,
         revenue
       });
-    } catch (error) {
-      console.error('Error loading transactions:', error);
     }
-  };
+  } catch (error) {
+    console.error('Error loading transactions:', error);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
