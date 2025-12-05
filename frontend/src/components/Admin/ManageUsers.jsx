@@ -11,6 +11,7 @@ const ManageUsers = () => {
     loadUsers();
   }, []);
 
+
   const loadUsers = async () => {
     setLoading(true);
     try {
@@ -18,6 +19,7 @@ const ManageUsers = () => {
       setUsers(response.data);
     } catch (error) {
       console.error('Error loading users:', error);
+      alert('Failed to load users');
     } finally {
       setLoading(false);
     }
@@ -141,8 +143,13 @@ const ManageUsers = () => {
           ))}
         </div>
       )}
+
+      <div className="mt-4 text-sm text-gray-600">
+        Showing {filteredUsers.length} of {users.filter(u => u.user_type === 'user').length} users
+      </div>
     </div>
   );
 };
+
 
 export default ManageUsers;

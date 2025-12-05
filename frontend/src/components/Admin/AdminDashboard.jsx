@@ -5,10 +5,10 @@ import ManageLibraries from './ManageLibraries';
 import SystemReports from './SystemReports';
 
 const AdminDashboard = ({ user, onLogout }) => {
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('reports');
 
   return (
-    <div className="min-h-screen bg-gray-50">
+     <div className="min-h-screen bg-gray-50">
       <header className="bg-indigo-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -27,9 +27,22 @@ const AdminDashboard = ({ user, onLogout }) => {
         </div>
       </header>
 
+
+      
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex gap-1">
+            <button
+              onClick={() => setActiveTab('reports')}
+              className={`px-6 py-3 font-medium transition flex items-center gap-2 ${
+                activeTab === 'reports'
+                  ? 'border-b-2 border-indigo-600 text-indigo-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <BarChart className="w-4 h-4" />
+              System Reports
+            </button>
             <button
               onClick={() => setActiveTab('users')}
               className={`px-6 py-3 font-medium transition flex items-center gap-2 ${
@@ -52,28 +65,18 @@ const AdminDashboard = ({ user, onLogout }) => {
               <Library className="w-4 h-4" />
               Manage Libraries
             </button>
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`px-6 py-3 font-medium transition flex items-center gap-2 ${
-                activeTab === 'reports'
-                  ? 'border-b-2 border-indigo-600 text-indigo-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              <BarChart className="w-4 h-4" />
-              System Reports
-            </button>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {activeTab === 'reports' && <SystemReports />}
         {activeTab === 'users' && <ManageUsers />}
         {activeTab === 'libraries' && <ManageLibraries />}
-        {activeTab === 'reports' && <SystemReports />}
       </div>
     </div>
   );
 };
+
 
 export default AdminDashboard;
