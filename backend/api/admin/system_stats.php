@@ -2,54 +2,63 @@
 include_once '../../utils/cors.php';
 include_once '../../config/database.php';
 
-session_start();
-
-// Check if user is admin
-if (!isset($_SESSION['user_id']) || $_SESSION['user_type'] !== 'admin') {
-    http_response_code(403);
-    echo json_encode(array("message" => "Access denied"));
-    exit();
-}
-
 $database = new Database();
 $db = $database->getConnection();
 
 try {
-    // Total users
-    $users_query = "SELECT COUNT(*) as total FROM users WHERE user_type = 'user' AND status = 'active'";
-    $users_stmt = $db->prepare($users_query);
-    $users_stmt->execute();
-    $totalUsers = $users_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total users
+    $userQuery = "SELECT COUNT(*) as count FROM users WHERE user_type = 'user' AND status = 'active'";
+    $userStmt = $db->prepare($userQuery);
+    $userStmt->execute();
+    $totalUsers = $userStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Total libraries
-    $libraries_query = "SELECT COUNT(*) as total FROM users WHERE user_type = 'library' AND status = 'active'";
-    $libraries_stmt = $db->prepare($libraries_query);
-    $libraries_stmt->execute();
-    $totalLibraries = $libraries_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total libraries
+    $libQuery = "SELECT COUNT(*) as count FROM libraries l 
+                 JOIN users u ON l.user_id = u.user_id 
+                 WHERE u.status = 'active'";
+    $libStmt = $db->prepare($libQuery);
+    $libStmt->execute();
+    $totalLibraries = $libStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Total books
-    $books_query = "SELECT COUNT(*) as total FROM books WHERE status = 'active'";
-    $books_stmt = $db->prepare($books_query);
-    $books_stmt->execute();
-    $totalBooks = $books_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total books
+    $bookQuery = "SELECT COALESCE(SUM(total_copies), 0) as count FROM books WHERE status = 'active'";
+    $bookStmt = $db->prepare($bookQuery);
+    $bookStmt->execute();
+    $totalBooks = $bookStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Active loans
-    $loans_query = "SELECT COUNT(*) as total FROM transactions WHERE transaction_type = 'borrow' AND status = 'active'";
-    $loans_stmt = $db->prepare($loans_query);
-    $loans_stmt->execute();
-    $activeLoans = $loans_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get active loans
+    $loanQuery = "SELECT COUNT(*) as count FROM transactions 
+                  WHERE transaction_type = 'borrow' AND status = 'active'";
+    $loanStmt = $db->prepare($loanQuery);
+    $loanStmt->execute();
+    $activeLoans = $loanStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Pending transactions
-    $pending_query = "SELECT COUNT(*) as total FROM transactions WHERE status = 'pending'";
-    $pending_stmt = $db->prepare($pending_query);
-    $pending_stmt->execute();
-    $pendingTransactions = $pending_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get pending transactions
+    $pendingQuery = "SELECT COUNT(*) as count FROM transactions WHERE status = 'pending'";
+    $pendingStmt = $db->prepare($pendingQuery);
+    $pendingStmt->execute();
+    $pendingTransactions = $pendingStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Total revenue
-    $revenue_query = "SELECT COALESCE(SUM(price), 0) as total FROM transactions WHERE transaction_type = 'purchase' AND status = 'completed'";
-    $revenue_stmt = $db->prepare($revenue_query);
-    $revenue_stmt->execute();
-    $totalRevenue = $revenue_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    // Get total revenue
+    $revenueQuery = "SELECT COALESCE(SUM(price), 0) as total 
+                     FROM transactions 
+                     WHERE transaction_type = 'purchase' AND status = 'completed'";
+    $revenueStmt = $db->prepare($revenueQuery);
+    $revenueStmt->execute();
+    $totalRevenue = $revenueStmt->fetch(PDO::FETCH_ASSOC)['total'];
+    
+    // Get recent activity (last 10 transactions)
+    $activityQuery = "SELECT t.transaction_id, t.transaction_type, t.status, t.created_at,
+                      u.full_name as user_name, b.title as book_title, l.library_name
+                      FROM transactions t
+                      JOIN users u ON t.user_id = u.user_id
+                      JOIN books b ON t.book_id = b.book_id
+                      JOIN libraries l ON t.library_id = l.library_id
+                      ORDER BY t.created_at DESC
+                      LIMIT 10";
+    $activityStmt = $db->prepare($activityQuery);
+    $activityStmt->execute();
+    $recentActivity = $activityStmt->fetchAll(PDO::FETCH_ASSOC);
     
     $stats = array(
         'totalUsers' => (int)$totalUsers,
@@ -60,9 +69,20 @@ try {
         'totalRevenue' => (float)$totalRevenue
     );
     
-    http_response_code(200);
-    echo json_encode(array('stats' => $stats));
+    $formattedActivity = array();
+    foreach ($recentActivity as $activity) {
+        $formattedActivity[] = array(
+            'description' => ucfirst($activity['transaction_type']) . ': ' . $activity['user_name'] . ' - ' . $activity['book_title'] . ' at ' . $activity['library_name'],
+            'timestamp' => date('M d, Y H:i', strtotime($activity['created_at'])),
+            'status' => $activity['status']
+        );
+    }
     
+    http_response_code(200);
+    echo json_encode(array(
+        'stats' => $stats,
+        'recentActivity' => $formattedActivity
+    ));
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(array("message" => "Database error: " . $e->getMessage()));
