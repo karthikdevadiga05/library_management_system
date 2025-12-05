@@ -4,6 +4,7 @@ import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import UserDashboard from './components/User/UserDashboard';
 import LibraryDashboard from './components/Library/LibraryDashboard';
+import AdminDashboard from './components/Admin/AdminDashboard';
 import Footer from './components/Common/Footer';
 
 function App() {
@@ -57,6 +58,9 @@ function App() {
       )}
       {currentUser.user_type === 'library' && (
         <LibraryDashboard user={currentUser} onLogout={handleLogout} />
+      )}
+      {currentUser.user_type === 'admin' && (
+        <AdminDashboard user={currentUser} onLogout={handleLogout} />
       )}
       <Footer />
     </div>
