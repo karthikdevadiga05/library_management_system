@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
-import { Library, Search, Mail, Phone, MapPin, Book, Ban, CheckCircle } from 'lucide-react';
+import { Library, Search, Mail, Phone, MapPin, Book, Ban, CheckCircle, Edit } from 'lucide-react';
 
 const ManageLibraries = () => {
   const [libraries, setLibraries] = useState([]);
@@ -39,7 +39,7 @@ const ManageLibraries = () => {
   };
 
   const filteredLibraries = libraries.filter(lib =>
-    lib.library_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    lib.library_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lib.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     lib.registration_number?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -76,7 +76,7 @@ const ManageLibraries = () => {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {filteredLibraries.map((lib) => (
-            <div key={lib.library_id} className="bg-white rounded-lg shadow-md p-6">
+            <div key={lib.library_id} className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -119,7 +119,8 @@ const ManageLibraries = () => {
                 )}
                 <p className="flex items-center gap-2">
                   <Book className="w-4 h-4 text-gray-400" />
-                  <span className="font-semibold">{lib.total_books}</span> books
+                  <span className="font-semibold">{lib.unique_books || 0}</span> different books
+                  <span className="text-gray-400">({lib.total_copies || 0} total copies)</span>
                 </p>
               </div>
 
