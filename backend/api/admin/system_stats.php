@@ -13,22 +13,25 @@ try {
     $totalUsers = $userStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
     // Get total libraries
-    $libQuery = "SELECT COUNT(*) as count FROM libraries l 
-                 JOIN users u ON l.user_id = u.user_id 
-                 WHERE u.status = 'active'";
+    $libQuery = "SELECT COUNT(*) as count FROM libraries l JOIN users u ON l.user_id = u.user_id WHERE u.status = 'active'";
     $libStmt = $db->prepare($libQuery);
     $libStmt->execute();
     $totalLibraries = $libStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
-    // Get total books
-    $bookQuery = "SELECT COALESCE(SUM(total_copies), 0) as count FROM books WHERE status = 'active'";
+    // Get total UNIQUE books (different titles/ISBNs)
+    $bookQuery = "SELECT COUNT(DISTINCT b.book_id) as count FROM books b WHERE b.status = 'active'";
     $bookStmt = $db->prepare($bookQuery);
     $bookStmt->execute();
     $totalBooks = $bookStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
+    // Get total copies (physical books)
+    $copiesQuery = "SELECT COALESCE(SUM(total_copies), 0) as count FROM books WHERE status = 'active'";
+    $copiesStmt = $db->prepare($copiesQuery);
+    $copiesStmt->execute();
+    $totalCopies = $copiesStmt->fetch(PDO::FETCH_ASSOC)['count'];
+    
     // Get active loans
-    $loanQuery = "SELECT COUNT(*) as count FROM transactions 
-                  WHERE transaction_type = 'borrow' AND status = 'active'";
+    $loanQuery = "SELECT COUNT(*) as count FROM transactions WHERE transaction_type = 'borrow' AND status = 'active'";
     $loanStmt = $db->prepare($loanQuery);
     $loanStmt->execute();
     $activeLoans = $loanStmt->fetch(PDO::FETCH_ASSOC)['count'];
@@ -40,49 +43,30 @@ try {
     $pendingTransactions = $pendingStmt->fetch(PDO::FETCH_ASSOC)['count'];
     
     // Get total revenue
-    $revenueQuery = "SELECT COALESCE(SUM(price), 0) as total 
-                     FROM transactions 
-                     WHERE transaction_type = 'purchase' AND status = 'completed'";
+    $revenueQuery = "SELECT COALESCE(SUM(price), 0) as total FROM transactions WHERE transaction_type = 'purchase' AND status = 'completed'";
     $revenueStmt = $db->prepare($revenueQuery);
     $revenueStmt->execute();
     $totalRevenue = $revenueStmt->fetch(PDO::FETCH_ASSOC)['total'];
     
-    // Get recent activity (last 10 transactions)
-    $activityQuery = "SELECT t.transaction_id, t.transaction_type, t.status, t.created_at,
-                      u.full_name as user_name, b.title as book_title, l.library_name
-                      FROM transactions t
-                      JOIN users u ON t.user_id = u.user_id
-                      JOIN books b ON t.book_id = b.book_id
-                      JOIN libraries l ON t.library_id = l.library_id
-                      ORDER BY t.created_at DESC
-                      LIMIT 10";
-    $activityStmt = $db->prepare($activityQuery);
-    $activityStmt->execute();
-    $recentActivity = $activityStmt->fetchAll(PDO::FETCH_ASSOC);
+    // Get total fines collected
+    $finesQuery = "SELECT COALESCE(SUM(fine_amount), 0) as total FROM transactions WHERE payment_status = 'paid' AND fine_amount > 0";
+    $finesStmt = $db->prepare($finesQuery);
+    $finesStmt->execute();
+    $totalFines = $finesStmt->fetch(PDO::FETCH_ASSOC)['total'];
     
     $stats = array(
         'totalUsers' => (int)$totalUsers,
         'totalLibraries' => (int)$totalLibraries,
-        'totalBooks' => (int)$totalBooks,
+        'totalBooks' => (int)$totalBooks,  // Unique book titles
+        'totalCopies' => (int)$totalCopies,  // Total physical copies
         'activeLoans' => (int)$activeLoans,
         'pendingTransactions' => (int)$pendingTransactions,
-        'totalRevenue' => (float)$totalRevenue
+        'totalRevenue' => (float)$totalRevenue,
+        'totalFines' => (float)$totalFines
     );
     
-    $formattedActivity = array();
-    foreach ($recentActivity as $activity) {
-        $formattedActivity[] = array(
-            'description' => ucfirst($activity['transaction_type']) . ': ' . $activity['user_name'] . ' - ' . $activity['book_title'] . ' at ' . $activity['library_name'],
-            'timestamp' => date('M d, Y H:i', strtotime($activity['created_at'])),
-            'status' => $activity['status']
-        );
-    }
-    
     http_response_code(200);
-    echo json_encode(array(
-        'stats' => $stats,
-        'recentActivity' => $formattedActivity
-    ));
+    echo json_encode(array('stats' => $stats, 'recentActivity' => []));
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(array("message" => "Database error: " . $e->getMessage()));
