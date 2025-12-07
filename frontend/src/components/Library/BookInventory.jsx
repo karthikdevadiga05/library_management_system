@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { bookService } from '../../services/bookService';
-import { Book, Search, Edit, AlertCircle } from 'lucide-react';
+import { Book, Search, Edit, AlertCircle, ChevronDown, ChevronRight } from 'lucide-react';
 
 const BookInventory = ({ libraryId }) => {
   const [books, setBooks] = useState([]);
@@ -8,6 +8,7 @@ const BookInventory = ({ libraryId }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingBook, setEditingBook] = useState(null);
   const [newQuantity, setNewQuantity] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState({});
 
   useEffect(() => {
     loadBooks();
@@ -18,6 +19,12 @@ const BookInventory = ({ libraryId }) => {
     try {
       const data = await bookService.getLibraryBooks(libraryId);
       setBooks(data);
+      
+      // Expand all categories by default
+      const categories = [...new Set(data.map(b => b.category || 'Uncategorized'))];
+      const expanded = {};
+      categories.forEach(cat => expanded[cat] = true);
+      setExpandedCategories(expanded);
     } catch (error) {
       console.error('Error loading books:', error);
     } finally {
@@ -50,11 +57,30 @@ const BookInventory = ({ libraryId }) => {
     }
   };
 
+  const toggleCategory = (category) => {
+    setExpandedCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
   const filteredBooks = books.filter(book =>
     book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
     book.category?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Group books by category
+  const booksByCategory = filteredBooks.reduce((acc, book) => {
+    const category = book.category || 'Uncategorized';
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push(book);
+    return acc;
+  }, {});
+
+  const categories = Object.keys(booksByCategory).sort();
 
   if (loading) {
     return (
@@ -80,6 +106,26 @@ const BookInventory = ({ libraryId }) => {
         </div>
       </div>
 
+      {/* Summary Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white">
+          <p className="text-sm opacity-90">Total Books</p>
+          <p className="text-3xl font-bold">{books.length}</p>
+        </div>
+        <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg p-4 text-white">
+          <p className="text-sm opacity-90">Total Copies</p>
+          <p className="text-3xl font-bold">{books.reduce((sum, b) => sum + b.total_copies, 0)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-4 text-white">
+          <p className="text-sm opacity-90">Available</p>
+          <p className="text-3xl font-bold">{books.reduce((sum, b) => sum + b.available_copies, 0)}</p>
+        </div>
+        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg p-4 text-white">
+          <p className="text-sm opacity-90">Categories</p>
+          <p className="text-3xl font-bold">{categories.length}</p>
+        </div>
+      </div>
+
       {filteredBooks.length === 0 ? (
         <div className="text-center py-12">
           <Book className="w-16 h-16 mx-auto text-gray-400 mb-4" />
@@ -88,150 +134,179 @@ const BookInventory = ({ libraryId }) => {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Book Details
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Total Copies
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Available
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBooks.map((book) => {
-                const borrowed = book.total_copies - book.available_copies;
-                
-                return (
-                  <tr key={book.book_id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-gray-800">{book.title}</p>
-                        <p className="text-sm text-gray-600">{book.author}</p>
-                        {book.isbn && (
-                          <p className="text-xs text-gray-500 mt-1">ISBN: {book.isbn}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full">
-                        {book.category || 'N/A'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-gray-800">
-                      ${parseFloat(book.price).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingBook === book.book_id ? (
-                        <div>
-                          <input
-                            type="number"
-                            value={newQuantity}
-                            onChange={(e) => setNewQuantity(e.target.value)}
-                            className="w-20 px-2 py-1 border border-indigo-300 rounded focus:ring-2 focus:ring-indigo-500"
-                            min={borrowed}
-                            placeholder={book.total_copies}
-                          />
-                          {parseInt(newQuantity) < borrowed && (
-                            <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
-                              <AlertCircle className="w-3 h-3" />
-                              Min: {borrowed}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-600">{book.total_copies}</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div>
-                        <span className={`font-semibold ${
-                          book.available_copies > 0 ? 'text-green-600' : 'text-red-600'
-                        }`}>
-                          {book.available_copies}
-                        </span>
-                        <p className="text-xs text-gray-500 mt-1">
-                          ({borrowed} borrowed)
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        book.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {book.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {editingBook === book.book_id ? (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleUpdateQuantity(book)}
-                            disabled={parseInt(newQuantity) < borrowed}
-                            className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                          >
-                            Save
-                          </button>
-                          <button
-                            onClick={() => {
-                              setEditingBook(null);
-                              setNewQuantity('');
-                            }}
-                            className="bg-gray-400 text-white px-3 py-1 rounded text-xs hover:bg-gray-500"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setEditingBook(book.book_id);
-                            setNewQuantity(book.total_copies.toString());
-                          }}
-                          className="bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700 flex items-center gap-1"
-                        >
-                          <Edit className="w-3 h-3" />
-                          Update Qty
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <div className="space-y-4">
+          {categories.map((category) => {
+            const categoryBooks = booksByCategory[category];
+            const isExpanded = expandedCategories[category];
+            const totalCopies = categoryBooks.reduce((sum, b) => sum + b.total_copies, 0);
+            const availableCopies = categoryBooks.reduce((sum, b) => sum + b.available_copies, 0);
+
+            return (
+              <div key={category} className="bg-white rounded-lg shadow-md overflow-hidden">
+                {/* Category Header */}
+                <button
+                  onClick={() => toggleCategory(category)}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-indigo-50 to-indigo-100 hover:from-indigo-100 hover:to-indigo-200 transition flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-3">
+                    {isExpanded ? (
+                      <ChevronDown className="w-5 h-5 text-indigo-600" />
+                    ) : (
+                      <ChevronRight className="w-5 h-5 text-indigo-600" />
+                    )}
+                    <Book className="w-5 h-5 text-indigo-600" />
+                    <div className="text-left">
+                      <h4 className="font-bold text-gray-800 text-lg">{category}</h4>
+                      <p className="text-sm text-gray-600">
+                        {categoryBooks.length} book{categoryBooks.length !== 1 ? 's' : ''} • 
+                        {totalCopies} total copies • 
+                        {availableCopies} available
+                      </p>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 bg-indigo-600 text-white rounded-full text-sm font-semibold">
+                    {categoryBooks.length}
+                  </span>
+                </button>
+
+                {/* Category Books */}
+                {isExpanded && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Book Details
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Price
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Total Copies
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Available
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Status
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {categoryBooks.map((book) => {
+                          const borrowed = book.total_copies - book.available_copies;
+                          
+                          return (
+                            <tr key={book.book_id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4">
+                                <div>
+                                  <p className="font-semibold text-gray-800">{book.title}</p>
+                                  <p className="text-sm text-gray-600">{book.author}</p>
+                                  {book.isbn && (
+                                    <p className="text-xs text-gray-500 mt-1">ISBN: {book.isbn}</p>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 font-semibold text-gray-800">
+                                ${parseFloat(book.price).toFixed(2)}
+                              </td>
+                              <td className="px-6 py-4">
+                                {editingBook === book.book_id ? (
+                                  <div>
+                                    <input
+                                      type="number"
+                                      value={newQuantity}
+                                      onChange={(e) => setNewQuantity(e.target.value)}
+                                      className="w-20 px-2 py-1 border border-indigo-300 rounded focus:ring-2 focus:ring-indigo-500"
+                                      min={borrowed}
+                                      placeholder={book.total_copies}
+                                    />
+                                    {parseInt(newQuantity) < borrowed && (
+                                      <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
+                                        <AlertCircle className="w-3 h-3" />
+                                        Min: {borrowed}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-600">{book.total_copies}</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div>
+                                  <span className={`font-semibold ${
+                                    book.available_copies > 0 ? 'text-green-600' : 'text-red-600'
+                                  }`}>
+                                    {book.available_copies}
+                                  </span>
+                                  <p className="text-xs text-gray-500 mt-1">
+                                    ({borrowed} borrowed)
+                                  </p>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  book.status === 'active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {book.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4">
+                                {editingBook === book.book_id ? (
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => handleUpdateQuantity(book)}
+                                      disabled={parseInt(newQuantity) < borrowed}
+                                      className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setEditingBook(null);
+                                        setNewQuantity('');
+                                      }}
+                                      className="bg-gray-400 text-white px-3 py-1 rounded text-xs hover:bg-gray-500"
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setEditingBook(book.book_id);
+                                      setNewQuantity(book.total_copies.toString());
+                                    }}
+                                    className="bg-indigo-600 text-white px-3 py-1 rounded text-xs hover:bg-indigo-700 flex items-center gap-1"
+                                  >
+                                    <Edit className="w-3 h-3" />
+                                    Update Qty
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>💡 Tip:</strong> You can update book quantities anytime. 
-          However, you cannot reduce the quantity below the number of currently borrowed copies.
+          <strong>💡 Tip:</strong> Click on any category to expand/collapse its books. 
+          You can update book quantities, but cannot reduce below currently borrowed copies.
         </p>
-      </div>
-
-      <div className="mt-4 text-sm text-gray-600 flex justify-between">
-        <span>Showing {filteredBooks.length} of {books.length} books</span>
-        <span>Total copies: {books.reduce((sum, b) => sum + b.total_copies, 0)}</span>
       </div>
     </div>
   );
