@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authService } from '../../services/authService';
-import { ArrowLeft, User, Mail, Phone, MapPin, Building, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, MapPin, Building, AlertCircle, Info, CheckCircle } from 'lucide-react';
 
 const Register = ({ onSuccess, onBackToLogin }) => {
   const [formData, setFormData] = useState({
@@ -26,25 +26,73 @@ const Register = ({ onSuccess, onBackToLogin }) => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [locationStatus, setLocationStatus] = useState(''); // 'loading', 'success', 'error'
+  const [locationMessage, setLocationMessage] = useState('');
+
+  // Auto-dismiss location messages after 3 seconds
+  useEffect(() => {
+    if (locationStatus === 'success' || locationStatus === 'error') {
+      const timer = setTimeout(() => {
+        setLocationStatus('');
+        setLocationMessage('');
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [locationStatus]);
 
   const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setFormData({
-            ...formData,
-            latitude: position.coords.latitude.toString(),
-            longitude: position.coords.longitude.toString()
-          });
-          alert('Location captured successfully!');
-        },
-        (error) => {
-          alert('Unable to get location. Please enter manually.');
-        }
-      );
-    } else {
-      alert('Geolocation is not supported by this browser.');
+    if (!navigator.geolocation) {
+      setLocationStatus('error');
+      setLocationMessage('Geolocation not supported by your browser. Please enter coordinates manually.');
+      return;
     }
+
+    const options = {
+      enableHighAccuracy: true,  // Use GPS if available for better accuracy
+      timeout: 15000,            // Wait up to 15 seconds
+      maximumAge: 0              // Don't use cached location
+    };
+
+    setLocationStatus('loading');
+    setLocationMessage('Getting your location... This may take 10-15 seconds.');
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude.toFixed(6);
+        const lng = position.coords.longitude.toFixed(6);
+        const accuracy = position.coords.accuracy.toFixed(0);
+        
+        setFormData({
+          ...formData,
+          latitude: lat,
+          longitude: lng
+        });
+        
+        setLocationStatus('success');
+        setLocationMessage(`Location detected successfully! Accuracy: ±${accuracy}m`);
+      },
+      (error) => {
+        let msg = '';
+        
+        switch(error.code) {
+          case 1: // PERMISSION_DENIED
+            msg = 'Location permission denied. Please enable location access or enter coordinates manually.';
+            break;
+          case 2: // POSITION_UNAVAILABLE
+            msg = 'Location unavailable. Please check your device settings or enter coordinates manually.';
+            break;
+          case 3: // TIMEOUT
+            msg = 'Location request timed out. Please try again or enter coordinates manually.';
+            break;
+          default:
+            msg = 'Unable to get location. Please enter coordinates manually.';
+        }
+        
+        setLocationStatus('error');
+        setLocationMessage(msg);
+      },
+      options
+    );
   };
 
   const handleSubmit = async () => {
@@ -219,29 +267,83 @@ const Register = ({ onSuccess, onBackToLogin }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Location (Latitude, Longitude)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Location (Latitude, Longitude)
+              </label>
+              
+              {/* Library-specific info box */}
+              {formData.user_type === 'library' && (
+                <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-blue-800">
+                      <strong>Important for Libraries:</strong> If the automatic location is not accurate, please enter your library's exact coordinates manually. This helps users find your library easily on the map.
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* User hint */}
+              {formData.user_type === 'user' && (
+                <p className="text-xs text-gray-500 mb-2">
+                  💡 Click button for automatic detection or enter coordinates manually
+                </p>
+              )}
+              
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="Latitude"
+                  placeholder="Latitude (e.g., 13.3409)"
                   value={formData.latitude}
                   onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
                 <input
                   type="text"
-                  placeholder="Longitude"
+                  placeholder="Longitude (e.g., 74.7421)"
                   value={formData.longitude}
                   onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                 />
                 <button
+                  type="button"
                   onClick={handleGetLocation}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                  disabled={locationStatus === 'loading'}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 flex items-center gap-2 whitespace-nowrap"
                 >
                   <MapPin className="w-5 h-5" />
+                  {locationStatus === 'loading' ? 'Detecting...' : 'Auto Detect'}
                 </button>
               </div>
+              
+              {/* Status messages with auto-dismiss */}
+              {locationStatus === 'loading' && (
+                <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700 flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-700"></div>
+                  {locationMessage}
+                </div>
+              )}
+              
+              {locationStatus === 'success' && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4" />
+                  {locationMessage}
+                </div>
+              )}
+              
+              {locationStatus === 'error' && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4" />
+                  {locationMessage}
+                </div>
+              )}
+              
+              {/* Show current values */}
+              {formData.latitude && formData.longitude && locationStatus !== 'loading' && (
+                <div className="mt-2 p-2 bg-gray-50 border border-gray-200 rounded text-xs text-gray-700">
+                  📍 Current: {formData.latitude}, {formData.longitude}
+                </div>
+              )}
             </div>
 
             {formData.user_type === 'library' && (
