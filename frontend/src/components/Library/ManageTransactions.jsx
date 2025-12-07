@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { transactionService } from '../../services/transactionService';
-import { CheckCircle, Clock, Book, User, XCircle, DollarSign, AlertCircle } from 'lucide-react';
+import { CheckCircle, Clock, Book, User, XCircle, DollarSign, AlertCircle, RefreshCw } from 'lucide-react';
 import { formatDate } from '../../utils/dateHelper';
 
 const ManageTransactions = ({ transactions, onRefresh }) => {
@@ -42,15 +42,13 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
     const fine = transaction.calculated_fine || 0;
     
     if (fine > 0) {
-      // Show fine payment modal
       setSelectedTransaction(transaction);
       setShowFineModal(true);
     } else {
-      // No fine, return directly
       if (window.confirm('Mark this book as returned?')) {
         setProcessingId(transaction.transaction_id);
         try {
-          await transactionService.returnBook(transaction.transaction_id, false);
+          await transactionService.returnBook(transaction.transaction_id);
           alert('Book returned successfully');
           onRefresh();
         } catch (error) {
@@ -67,13 +65,13 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
     setProcessingId(selectedTransaction.transaction_id);
     
     try {
-      const result = await transactionService.returnBook(selectedTransaction.transaction_id, paid);
+      await transactionService.returnBook(selectedTransaction.transaction_id);
       
       if (paid) {
         await transactionService.payFine(selectedTransaction.transaction_id);
-        alert(`Book returned successfully!\nFine of $${result.fine.toFixed(2)} has been paid.`);
+        alert(`Book returned successfully!\nFine has been paid.`);
       } else {
-        alert(`Book returned successfully!\nFine of $${result.fine.toFixed(2)} is pending payment.`);
+        alert(`Book returned successfully!\nFine is pending payment.`);
       }
       
       onRefresh();
@@ -85,12 +83,28 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
     }
   };
 
+  const handleCheckExpired = async () => {
+    try {
+      const response = await transactionService.checkExpired();
+      if (response.expired_count > 0) {
+        alert(`${response.expired_count} expired transaction(s) processed.`);
+      } else {
+        alert('No expired transactions found.');
+      }
+      onRefresh();
+    } catch (error) {
+      console.error('Error checking expired:', error);
+      alert('Failed to check expired transactions');
+    }
+  };
+
   const getStatusBadge = (status) => {
     const styles = {
       pending: 'bg-yellow-100 text-yellow-800',
       active: 'bg-green-100 text-green-800',
       completed: 'bg-blue-100 text-blue-800',
-      expired: 'bg-red-100 text-red-800'
+      expired: 'bg-red-100 text-red-800',
+      rejected: 'bg-gray-100 text-gray-800'
     };
 
     return (
@@ -100,20 +114,31 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
     );
   };
 
+  // Filter transactions by status (exclude expired from pending)
   const pendingTransactions = transactions.filter(t => t.status === 'pending');
   const activeTransactions = transactions.filter(t => t.status === 'active');
+  const expiredTransactions = transactions.filter(t => t.status === 'expired');
   const completedTransactions = transactions.filter(t => t.status === 'completed').slice(0, 10);
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-xl font-bold text-gray-800">Transaction Management</h3>
-        <button
-          onClick={onRefresh}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleCheckExpired}
+            className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition text-sm flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Check Expired
+          </button>
+          <button
+            onClick={onRefresh}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition text-sm"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Fine Payment Modal */}
@@ -180,7 +205,7 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                         {transaction.user_name}
                       </span>
                       <span>{transaction.user_email}</span>
-                      <span>{transaction.user_phone}</span>
+                      {transaction.user_phone && <span>{transaction.user_phone}</span>}
                     </div>
                     <div className="mt-2 text-sm">
                       <span className="font-medium capitalize">{transaction.transaction_type}</span>
@@ -275,6 +300,38 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
         </div>
       )}
 
+      {/* Expired Transactions */}
+      {expiredTransactions.length > 0 && (
+        <div className="mb-8">
+          <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <XCircle className="w-5 h-5 text-red-600" />
+            Expired Bookings ({expiredTransactions.length})
+          </h4>
+          <div className="space-y-3">
+            {expiredTransactions.map((transaction) => (
+              <div key={transaction.transaction_id} className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800">{transaction.book_title}</p>
+                    <p className="text-sm text-gray-600">{transaction.author}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
+                      <span>User: {transaction.user_name}</span>
+                      <span>Booked: {formatDate(transaction.created_at)}</span>
+                    </div>
+                    <p className="text-xs text-red-600 mt-2 font-medium">
+                      User did not visit library within 24 hours - Booking cancelled
+                    </p>
+                  </div>
+                  <div>
+                    {getStatusBadge(transaction.status)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Completed Transactions */}
       {completedTransactions.length > 0 && (
         <div>
@@ -292,38 +349,37 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                     <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                       <span>User: {transaction.user_name}</span>
                       <span className="capitalize">{transaction.transaction_type}</span>
-                       <span>User: {transaction.user_name}</span>
-                  <span className="capitalize">{transaction.transaction_type}</span>
-                  {transaction.price && (
-                    <span className="font-semibold">${parseFloat(transaction.price).toFixed(2)}</span>
-                  )}
-                  {transaction.fine_amount > 0 && (
-                    <span className="text-red-600">Fine: ${parseFloat(transaction.fine_amount).toFixed(2)}</span>
-                  )}
+                      {transaction.price && (
+                        <span className="font-semibold">${parseFloat(transaction.price).toFixed(2)}</span>
+                      )}
+                      {transaction.fine_amount > 0 && (
+                        <span className="text-red-600">Fine: ${parseFloat(transaction.fine_amount).toFixed(2)}</span>
+                      )}
+                    </div>
+                    {transaction.return_date && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Returned: {formatDate(transaction.return_date)}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    {getStatusBadge(transaction.status)}
+                  </div>
                 </div>
-                {transaction.return_date && (
-                  <p className="text-xs text-gray-500 mt-1">
-                    Returned: {formatDate(transaction.return_date)}
-                  </p>
-                )}
               </div>
-              <div>
-                {getStatusBadge(transaction.status)}
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  )}
+        </div>
+      )}
 
-  {transactions.length === 0 && (
-    <div className="text-center py-12">
-      <Book className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-      <p className="text-gray-600">No transactions yet</p>
+      {transactions.length === 0 && (
+        <div className="text-center py-12">
+          <Book className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+          <p className="text-gray-600">No transactions yet</p>
+        </div>
+      )}
     </div>
-  )}
-</div>
-);
+  );
 };
+
 export default ManageTransactions;
