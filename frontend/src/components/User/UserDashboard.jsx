@@ -15,11 +15,35 @@ const UserDashboard = ({ user, onLogout }) => {
   useEffect(() => {
     loadNearbyLibraries();
     loadTransactions();
-    const interval = setInterval(() => {
-      transactionService.checkExpired();
-    }, 300000);
-    return () => clearInterval(interval);
+    
+    // Check for expired transactions immediately on mount
+    checkExpiredTransactions();
+    
+    // Check for expired transactions every 2 minutes
+    const expiryInterval = setInterval(() => {
+      checkExpiredTransactions();
+    }, 120000); // 2 minutes
+    
+    // Refresh transactions every 30 seconds to show updated status
+    const refreshInterval = setInterval(() => {
+      loadTransactions();
+    }, 30000); // 30 seconds
+    
+    return () => {
+      clearInterval(expiryInterval);
+      clearInterval(refreshInterval);
+    };
   }, []);
+
+  const checkExpiredTransactions = async () => {
+    try {
+      await transactionService.checkExpired();
+      // Reload transactions after checking expired ones
+      loadTransactions();
+    } catch (error) {
+      console.error('Error checking expired transactions:', error);
+    }
+  };
 
   const loadNearbyLibraries = async () => {
     try {
@@ -48,8 +72,8 @@ const UserDashboard = ({ user, onLogout }) => {
     setLoading(true);
     try {
       await transactionService.borrowBook(user.user_id, library.library_id, book.book_id);
-      alert('Book borrowed! Please visit the library within 24 hours to confirm.');
-      loadTransactions();
+      alert('Book borrowed! Please visit the library within 24 hours to confirm, or your booking will be automatically cancelled.');
+      await loadTransactions();
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to borrow book');
     } finally {
@@ -62,7 +86,7 @@ const UserDashboard = ({ user, onLogout }) => {
     try {
       await transactionService.purchaseRequest(user.user_id, library.library_id, book.book_id, book.price);
       alert('Purchase request sent! Waiting for library approval.');
-      loadTransactions();
+      await loadTransactions();
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to send purchase request');
     } finally {
@@ -118,7 +142,10 @@ const UserDashboard = ({ user, onLogout }) => {
               Search Books
             </button>
             <button
-              onClick={() => setActiveTab('transactions')}
+              onClick={() => {
+                setActiveTab('transactions');
+                loadTransactions(); // Refresh when clicking tab
+              }}
               className={`px-6 py-3 font-medium transition ${
                 activeTab === 'transactions'
                   ? 'border-b-2 border-indigo-600 text-indigo-600'
@@ -143,7 +170,10 @@ const UserDashboard = ({ user, onLogout }) => {
           />
         )}
         {activeTab === 'transactions' && (
-          <MyTransactions transactions={transactions} onRefresh={loadTransactions} />
+          <MyTransactions 
+            transactions={transactions} 
+            onRefresh={loadTransactions}
+          />
         )}
       </div>
     </div>
