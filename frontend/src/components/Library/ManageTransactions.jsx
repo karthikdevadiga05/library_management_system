@@ -214,7 +214,7 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                       )}
                     </div>
                     <p className="text-xs text-gray-500 mt-2">
-                      Requested: {formatDate(transaction.created_at)}
+                      Requested: {formatDate(transaction.created_at)} at {new Date(transaction.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -267,7 +267,7 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                       <p className="text-sm text-gray-600 mb-2">{transaction.author}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <span>User: {transaction.user_name}</span>
-                        <span>Borrowed: {formatDate(transaction.borrow_date)}</span>
+                        <span>Borrowed: {formatDate(transaction.borrow_date)} at {new Date(transaction.borrow_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                         <span className={isOverdue ? 'text-red-600 font-semibold' : ''}>
                           Due: {formatDate(transaction.due_date)}
                         </span>
@@ -316,7 +316,7 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                     <p className="text-sm text-gray-600">{transaction.author}</p>
                     <div className="flex items-center gap-4 text-sm text-gray-600 mt-2">
                       <span>User: {transaction.user_name}</span>
-                      <span>Booked: {formatDate(transaction.created_at)}</span>
+                      <span>Booked: {formatDate(transaction.created_at)} at {new Date(transaction.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <p className="text-xs text-red-600 mt-2 font-medium">
                       User did not visit library within 24 hours - Booking cancelled
@@ -355,10 +355,13 @@ const ManageTransactions = ({ transactions, onRefresh }) => {
                       {transaction.fine_amount > 0 && (
                         <span className="text-red-600">Fine: ${parseFloat(transaction.fine_amount).toFixed(2)}</span>
                       )}
+                      <span className="text-gray-500">
+                        • {formatDate(transaction.created_at)} at {new Date(transaction.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                     {transaction.return_date && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Returned: {formatDate(transaction.return_date)}
+                        Returned: {formatDate(transaction.return_date)} at {new Date(transaction.return_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     )}
                   </div>
