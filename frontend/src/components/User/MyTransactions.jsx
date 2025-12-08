@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
-import { Book, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Calendar, RotateCcw } from 'lucide-react';
+import { Book, Clock, CheckCircle, XCircle, AlertCircle, DollarSign, Calendar } from 'lucide-react';
 import { transactionService } from '../../services/transactionService';
 
 const MyTransactions = ({ transactions, onRefresh }) => {
-  const [returning, setReturning] = useState(false);
-
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-blue-100 text-blue-800';
@@ -38,27 +36,6 @@ const MyTransactions = ({ transactions, onRefresh }) => {
     const diffTime = due - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
-  };
-
-  const handleReturnBook = async (transactionId) => {
-    if (!window.confirm('Are you sure you want to return this book?')) return;
-
-    setReturning(true);
-    try {
-      const response = await transactionService.returnBook(transactionId);
-      
-      if (response.fine_amount > 0) {
-        alert(`Book returned! You have a fine of $${response.fine_amount.toFixed(2)} for ${response.days_overdue} days overdue. Please pay at the library.`);
-      } else {
-        alert('Book returned successfully!');
-      }
-      
-      onRefresh();
-    } catch (error) {
-      alert(error.response?.data?.message || 'Failed to return book');
-    } finally {
-      setReturning(false);
-    }
   };
 
   const handlePayFine = async (transactionId) => {
@@ -132,7 +109,7 @@ const MyTransactions = ({ transactions, onRefresh }) => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-800">{transaction.title}</h3>
+                      <h3 className="text-xl font-bold text-gray-800">{transaction.book_title || transaction.title}</h3>
                       <span className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(transaction.status)}`}>
                         {getStatusIcon(transaction.status)}
                         {transaction.status}
@@ -160,6 +137,9 @@ const MyTransactions = ({ transactions, onRefresh }) => {
                       <Calendar className="w-4 h-4 text-gray-400" />
                       {formatDate(transaction.created_at)}
                     </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(transaction.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                   </div>
 
                   {transaction.transaction_type === 'borrow' && transaction.due_date && (
@@ -178,6 +158,9 @@ const MyTransactions = ({ transactions, onRefresh }) => {
                       <p className="font-medium flex items-center gap-1">
                         <CheckCircle className="w-4 h-4 text-green-600" />
                         {formatDate(transaction.return_date)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(transaction.return_date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   )}
@@ -246,21 +229,18 @@ const MyTransactions = ({ transactions, onRefresh }) => {
 
                 {/* Action Buttons */}
                 <div className="flex gap-2 pt-4 border-t">
-                  {transaction.transaction_type === 'borrow' && transaction.status === 'active' && (
-                    <button
-                      onClick={() => handleReturnBook(transaction.transaction_id)}
-                      disabled={returning}
-                      className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition disabled:bg-gray-400 flex items-center justify-center gap-2"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Return Book
-                    </button>
+                  {transaction.status === 'active' && transaction.transaction_type === 'borrow' && (
+                    <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-blue-800 text-sm font-semibold">
+                        📚 Please return this book to the library when finished. Library staff will process the return.
+                      </p>
+                    </div>
                   )}
 
                   {transaction.status === 'pending' && transaction.transaction_type === 'borrow' && !transaction.visit_confirmed && (
                     <div className="flex-1 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                       <p className="text-yellow-800 text-sm font-semibold">
-                        Please visit the library within 24 hours to confirm your borrow request
+                        ⚠️ Please visit the library within 24 hours to confirm your borrow request
                       </p>
                     </div>
                   )}
@@ -268,7 +248,31 @@ const MyTransactions = ({ transactions, onRefresh }) => {
                   {transaction.status === 'pending' && transaction.transaction_type === 'purchase' && (
                     <div className="flex-1 bg-blue-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-blue-800 text-sm font-semibold">
-                        Waiting for library approval
+                        ⏳ Waiting for library approval
+                      </p>
+                    </div>
+                  )}
+
+                  {transaction.status === 'expired' && (
+                    <div className="flex-1 bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-red-800 text-sm font-semibold">
+                        ❌ Booking expired - You did not visit the library within 24 hours
+                      </p>
+                    </div>
+                  )}
+
+                  {transaction.status === 'completed' && transaction.transaction_type === 'borrow' && (
+                    <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-green-800 text-sm font-semibold">
+                        ✅ Book returned successfully
+                      </p>
+                    </div>
+                  )}
+
+                  {transaction.status === 'completed' && transaction.transaction_type === 'purchase' && (
+                    <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-3">
+                      <p className="text-green-800 text-sm font-semibold">
+                        ✅ Purchase completed - Book is now yours!
                       </p>
                     </div>
                   )}
