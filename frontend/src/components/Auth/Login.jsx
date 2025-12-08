@@ -89,13 +89,6 @@ const Login = ({ onLogin, onShowRegister }) => {
             Create New Account
           </button>
         </div>
-
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-          <p className="font-semibold mb-2">Demo Credentials:</p>
-          <p>User: john_doe / password</p>
-          <p>Library: central_library / password</p>
-          <p>Admin: admin / password</p>
-        </div>
       </div>
     </div>
   );
