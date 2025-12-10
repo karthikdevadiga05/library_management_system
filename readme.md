@@ -53,7 +53,6 @@ The Library Management System is a modern full-stack web application that revolu
 | 📚 **Book Borrowing** | Borrow books with 24-hour visit confirmation window |
 | 💳 **Purchase Requests** | Request to purchase books directly from libraries |
 | 📊 **Transaction History** | Track all borrows, purchases, returns, and fines |
-| 🔔 **Notifications** | Automatic alerts for due dates and pending fines |
 | 💰 **Fine Management** | View and pay overdue fines with detailed breakdown |
 | 🚫 **Duplicate Prevention** | Cannot borrow same book within 15-day period |
 
@@ -75,17 +74,10 @@ The Library Management System is a modern full-stack web application that revolu
 |---------|-------------|
 | 👥 **User Management** | Activate, suspend, or delete user accounts |
 | 🏛️ **Library Oversight** | Monitor and manage all registered libraries |
-| 📊 **System Reports** | Generate comprehensive reports with KPIs |
-| 🔧 **System Health** | Monitor database, API, and server performance |
 | 📈 **Analytics** | View system-wide statistics and trends |
-| 💾 **Data Export** | Download reports in various formats |
+| 💾 **Data Export** | Download reports in .txt formats |
 
 ---
-
-## 🎬 Demo
-
-### Live Demo
-**[View Live Demo](#)** *(Coming Soon)*
 
 ### Demo Credentials
 ```yaml
@@ -149,20 +141,20 @@ Admin Account:
 ## 🏗️ System Architecture
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   CLIENT LAYER                           │
-│             React SPA (Port 3000)                        │
-│   • User Dashboard    • Library Dashboard                │
-│   • Admin Panel       • Authentication                   │
+│                   CLIENT LAYER                          │
+│             React SPA (Port 3000)                       │
+│   • User Dashboard    • Library Dashboard               │
+│   • Admin Panel       • Authentication                  │
 └──────────────────────┬──────────────────────────────────┘
                        │ HTTP/HTTPS (Axios)
 ┌──────────────────────▼──────────────────────────────────┐
-│                 WEB SERVER LAYER                         │
-│              Apache (XAMPP - Port 80)                    │
+│                 WEB SERVER LAYER                        │
+│              Apache (XAMPP - Port 80)                   │
 └──────────────────────┬──────────────────────────────────┘
                        │
 ┌──────────────────────▼──────────────────────────────────┐
-│              APPLICATION LAYER                           │
-│              PHP RESTful API Backend                     │
+│              APPLICATION LAYER                          │
+│              PHP RESTful API Backend                    │
 │  ┌─────────────────────────────────────────────┐        │
 │  │  • /auth    - Authentication                │        │
 │  │  • /books   - Book management               │        │
@@ -173,11 +165,11 @@ Admin Account:
 └──────────────────────┬──────────────────────────────────┘
                        │ PDO
 ┌──────────────────────▼──────────────────────────────────┐
-│                 DATABASE LAYER                           │
-│              MySQL Database Engine                       │
-│  • users          • books         • transactions         │
-│  • libraries      • reviews       • notifications        │
-│  • system_settings                                       │
+│                 DATABASE LAYER                          │
+│              MySQL Database Engine                      │
+│  • users          • books         • transactions        │
+│  • libraries      • reviews       • notifications       │
+│  • system_settings                                      │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -448,7 +440,7 @@ Response 200 OK:
 ```
 
 ### Complete API Reference
-See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
+See [API_DOCUMENTATION.md](doc/API_DOCUMENTATION.md) for full endpoint list.
 
 ---
 
@@ -739,7 +731,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ```
 MIT License
 
-Copyright (c) 2024 Karthik R Sherigara
+Copyright (c) 2025 Karthik R Sherigara
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -754,7 +746,7 @@ in the Software without restriction.
 - 🌐 GitHub: [@karthikdevadiga05](https://github.com/karthikdevadiga05)
 - 📧 Email: mail4karthikdevadiga@gmail.com
 - 💼 LinkedIn: [Karthik Sherigara](https://www.linkedin.com/in/karthik-sherigara-861977346/)
-- 🎓 MCA Student - 2024-2025
+- 🎓 MCA Student - 2025 - 2027
 
 ---
 
@@ -767,23 +759,6 @@ in the Software without restriction.
 - **Lucide** - For beautiful icon set
 - **Stack Overflow** - For community support
 - **My College** - For project guidance
-
----
-
-
-## ⭐ Show Your Support
-
-Give a ⭐ if this project helped you!
-
-[![Star History Chart](https://api.star-history.com/svg?repos=karthikdevadiga05/library-management-system&type=Date)](https://star-history.com/#karthikdevadiga05/library-management-system&Date)
-
----
-
-## 📊 Project Statistics
-
-![GitHub stars](https://img.shields.io/github/stars/karthikdevadiga05/library-management-system?style=social)
-![GitHub forks](https://img.shields.io/github/forks/karthikdevadiga05/library-management-system?style=social)
-![GitHub watchers](https://img.shields.io/github/watchers/karthikdevadiga05/library-management-system?style=social)
 
 ---
 
@@ -805,7 +780,7 @@ Give a ⭐ if this project helped you!
 
 <div align="center">
 
-**Made with ❤️ for MCA Final Year Project**
+**Made with ❤️ for MCA 1st Year Project**
 
 [Report Bug](https://github.com/karthikdevadiga05/library-management-system/issues) · [Request Feature](https://github.com/karthikdevadiga05/library-management-system/issues) · [View Demo](#)
 
