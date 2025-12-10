@@ -524,7 +524,7 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | Login Page | User Registration |
 |------------|-------------------|
-| ![Login](screenshots/login.png) | ![User Register](screenshots/user/user-register.png) |
+| ![Login](screenshots/login.PNG) | ![User Register](screenshots/user/user-register.PNG) |
 | *Secure login for all user types* | *Easy registration with location services* |
 
 </div>
@@ -537,19 +537,13 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | User Dashboard | Book Search |
 |----------------|-------------|
-| ![User Dashboard](screenshots/user/user-dashboard.png) | ![Book Search](screenshots/user/book-search.png) |
+| ![User Dashboard](screenshots/user/user-dashboard.PNG) | ![Book Search](screenshots/user/book-search.PNG) |
 | *Personalized dashboard with nearby libraries* | *Location-based search with distance sorting* |
 
-</div>
-
-#### Transaction Management
-
-<div align="center">
-
-| Pending Transactions | Active Loans | Transaction History |
-|---------------------|--------------|---------------------|
-| ![Transactions 1](screenshots/user/transactions1.png) | ![Transactions 2](screenshots/user/transactions2.png) | ![Transactions 3](screenshots/user/transactions3.png) |
-| *View pending book requests* | *Track active borrowed books* | *Complete transaction history* |
+| User Transactions |
+|-------------------|
+| ![Transactions 1](screenshots/user/transactions1.PNG) | ![Transactions 2](screenshots/user/transactions2.PNG) | ![Transactions 3](screenshots/user/transactions3.PNG) |
+| *View pending requests, active loans, and complete transaction history with fines* |
 
 </div>
 
@@ -557,36 +551,22 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 ### 📚 Library Interface
 
-#### Registration Process
-
 <div align="center">
 
-| Step 1: Basic Information | Step 2: Library Details |
-|---------------------------|-------------------------|
-| ![Library Register 1](screenshots/library/library-register1.png) | ![Library Register 2](screenshots/library/library-register2.png) |
-| *Enter library basic details* | *Complete library registration* |
-
-</div>
-
-#### Library Management
-
-<div align="center">
+| Library Registration (Step 1) | Library Registration (Step 2) |
+|-------------------------------|-------------------------------|
+| ![Library Register 1](screenshots/library/library-register1.PNG) | ![Library Register 2](screenshots/library/library-register2.PNG) |
+| *Enter library basic information* | *Complete library registration with details* |
 
 | Library Dashboard | Add Book to Inventory |
 |-------------------|----------------------|
-| ![Library Dashboard](screenshots/library/library-dashboard.png) | ![Add Book](screenshots/library/add-book.png) |
-| *Real-time statistics and overview* | *Easy book addition with details* |
+| ![Library Dashboard](screenshots/library/library-dashboard.PNG) | ![Add Book](screenshots/library/add-book.PNG) |
+| *Real-time statistics and overview* | *Easy book addition with complete details* |
 
-</div>
-
-#### Transaction Processing
-
-<div align="center">
-
-| Pending Requests | Active Loans & Returns |
-|-----------------|------------------------|
-| ![Transactions 1](screenshots/library/transactions1.png) | ![Transactions 2](screenshots/library/transactions2.png) |
-| *Approve borrow/purchase requests* | *Process book returns and fines* |
+| Library Transactions |
+|---------------------|
+| ![Transactions 1](screenshots/library/transactions1.PNG) | ![Transactions 2](screenshots/library/transactions2.PNG) |
+| *Manage borrow/purchase requests, confirm visits, and process book returns with fine collection* |
 
 </div>
 
@@ -598,13 +578,13 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | Admin Dashboard | User Management |
 |-----------------|-----------------|
-| ![Admin Dashboard](screenshots/admin/admin-dashboard.png) | ![Manage Users](screenshots/admin/manage-users.png) |
-| *System-wide analytics, reports & metrics* | *User access control and monitoring* |
+| ![Admin Dashboard](screenshots/admin/admin-dashboard.PNG) | ![Manage Users](screenshots/admin/manage-users.PNG) |
+| *System-wide analytics, reports and performance metrics* | *User access control and account monitoring* |
 
 | Library Management |
 |--------------------|
-| ![Manage Libraries](screenshots/admin/manage-libraries.png) |
-| *Library oversight and status control* |
+| ![Manage Libraries](screenshots/admin/manage-library.PNG) |
+| *Library oversight, status control and monitoring* |
 
 </div>
 
