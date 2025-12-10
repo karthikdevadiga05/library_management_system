@@ -518,29 +518,70 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 ## 📸 Screenshots
 
-### User Interface
-![Login Page](screenshots/login.png)
-*User-friendly login with support for all user types*
+### 🔐 Authentication
 
-![Search Results](screenshots/search.png)
-*Location-based book search with distance sorting*
+<div align="center">
 
-![User Dashboard](screenshots/user-dashboard.png)
-*Comprehensive user dashboard with nearby libraries*
+| Login Page | User Registration |
+|------------|-------------------|
+| ![Login](screenshots/login.png) | ![User Register](screenshots/user/user-register.png) |
+| *Secure login for all user types* | *Easy registration with location services* |
 
-### Library Interface
-![Library Dashboard](screenshots/library-dashboard.png)
-*Real-time statistics and transaction management*
+</div>
 
-![Book Inventory](screenshots/book-inventory.png)
-*Easy inventory management with search and filters*
+---
 
-### Admin Interface
-![Admin Dashboard](screenshots/admin-dashboard.png)
-*System-wide analytics and performance metrics*
+### 👤 User Interface
 
-![System Reports](screenshots/system-reports.png)
-*Comprehensive reports with downloadable formats*
+<div align="center">
+
+| User Dashboard | Book Search |
+|----------------|-------------|
+| ![User Dashboard](screenshots/user/user-dashboard.png) | ![Book Search](screenshots/user/book-search.png) |
+| *Personalized dashboard with nearby libraries* | *Location-based search with distance sorting* |
+
+| User Transactions |
+|-------------------|
+| ![Transactions](screenshots/user/transactions.png) |
+| *Track all borrowing history and fines* |
+
+</div>
+
+---
+
+### 📚 Library Interface
+
+<div align="center">
+
+| Library Registration | Library Dashboard |
+|---------------------|-------------------|
+| ![Library Register](screenshots/library/library-register.png) | ![Library Dashboard](screenshots/library/library-dashboard.png) |
+| *Simple library registration process* | *Real-time statistics and overview* |
+
+| Add Book | Transaction Management |
+|----------|------------------------|
+| ![Add Book](screenshots/library/add-book.png) | ![Transactions](screenshots/library/transactions.png) |
+| *Easy book addition to inventory* | *Handle borrow/purchase requests* |
+
+</div>
+
+---
+
+### 👨‍💼 Admin Interface
+
+<div align="center">
+
+| Admin Dashboard | Manage Users |
+|-----------------|--------------|
+| ![Admin Dashboard](screenshots/admin/admin-dashboard.png) | ![Manage Users](screenshots/admin/manage-users.png) |
+| *System-wide analytics and metrics* | *User management and access control* |
+
+| Manage Libraries | System Reports |
+|-----------------|----------------|
+| ![Manage Libraries](screenshots/admin/manage-libraries.png) | ![Reports](screenshots/admin/system-reports.png) |
+| *Library oversight and monitoring* | *Comprehensive reports with export* |
+
+</div>
 
 ---
 
@@ -763,6 +804,6 @@ Give a ⭐ if this project helped you!
 
 [Report Bug](https://github.com/karthikdevadiga05/library-management-system/issues) · [Request Feature](https://github.com/karthikdevadiga05/library-management-system/issues) · [View Demo](#)
 
-**© 2024 Karthik R Sherigara. All Rights Reserved.**
+**© 2025 Karthik R Sherigara. All Rights Reserved.**
 
 </div>
