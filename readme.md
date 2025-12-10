@@ -524,7 +524,7 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | Login Page | User Registration |
 |------------|-------------------|
-| ![Login](screenshots/login.png) | ![User Register](screenshots/user/user-register.png) |
+| ![Login](screenshots/login.PNG) | ![User Register](screenshots/user/user-register.PNG) |
 | *Secure login for all user types* | *Easy registration with location services* |
 
 </div>
@@ -537,12 +537,12 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | User Dashboard | Book Search |
 |----------------|-------------|
-| ![User Dashboard](screenshots/user/user-dashboard.png) | ![Book Search](screenshots/user/book-search.png) |
+| ![User Dashboard](screenshots/user/user-dashboard.PNG) | ![Book Search](screenshots/user/book-search.PNG) |
 | *Personalized dashboard with nearby libraries* | *Location-based search with distance sorting* |
 
 | User Transactions |
 |-------------------|
-| ![Transactions](screenshots/user/transactions.png) |
+| ![Transactions](screenshots/user/transactions.PNG) |
 | *Track all borrowing history and fines* |
 
 </div>
@@ -555,12 +555,12 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | Library Registration | Library Dashboard |
 |---------------------|-------------------|
-| ![Library Register](screenshots/library/library-register.png) | ![Library Dashboard](screenshots/library/library-dashboard.png) |
+| ![Library Register](screenshots/library/library-register.PNG) | ![Library Dashboard](screenshots/library/library-dashboard.PNG) |
 | *Simple library registration process* | *Real-time statistics and overview* |
 
 | Add Book | Transaction Management |
 |----------|------------------------|
-| ![Add Book](screenshots/library/add-book.png) | ![Transactions](screenshots/library/transactions.png) |
+| ![Add Book](screenshots/library/add-book.PNG) | ![Transactions](screenshots/library/transactions.PNG) |
 | *Easy book addition to inventory* | *Handle borrow/purchase requests* |
 
 </div>
@@ -573,12 +573,12 @@ See [API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) for full endpoint list.
 
 | Admin Dashboard | Manage Users |
 |-----------------|--------------|
-| ![Admin Dashboard](screenshots/admin/admin-dashboard.png) | ![Manage Users](screenshots/admin/manage-users.png) |
+| ![Admin Dashboard](screenshots/admin/admin-dashboard.PNG) | ![Manage Users](screenshots/admin/manage-users.PNG) |
 | *System-wide analytics and metrics* | *User management and access control* |
 
 | Manage Libraries | System Reports |
 |-----------------|----------------|
-| ![Manage Libraries](screenshots/admin/manage-libraries.png) | ![Reports](screenshots/admin/system-reports.png) |
+| ![Manage Libraries](screenshots/admin/manage-libraries.PNG) | ![Reports](screenshots/admin/system-reports.PNG) |
 | *Library oversight and monitoring* | *Comprehensive reports with export* |
 
 </div>
